@@ -1,0 +1,7 @@
+lets Def-fn Fib function (
+    Def N as a position in fibonacci sequence;
+    then Do If (N; < 2) (return N)
+    and else (return + of Fib - 1 N and Fib - 2 N);
+);
+
+Now we can Print the Fib 10;
