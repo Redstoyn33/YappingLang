@@ -1,21 +1,24 @@
 
+#[derive(Debug)]
 pub struct Token {
-    typ: TokenData,
-    line: i32,
+    pub typ: TokenData,
+    pub line: u64,
 }
 
+#[derive(Debug)]
 pub enum TokenData {
     // Literals.
     Identifier(String),
     String(String),
-    Number(String),
+    Integer(i64),
+    Decimal(f64),
 
     // Single-character tokens.
     Semicolon,
-    LeftBrace,
-    RightBrace,
-    Minus,
-    Plus,
-    Slash,
-    Star,
+    LeftParen,
+    RightParen,
+
+    // keywords
+    DefFn,
+    Def,
 }

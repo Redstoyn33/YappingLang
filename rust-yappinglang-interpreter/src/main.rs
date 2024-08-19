@@ -1,7 +1,6 @@
 use std::env::args;
-use std::error::Error;
 use std::fs::File;
-use std::io::Read;
+use std::io::{Read, stdout, Write};
 use std::path::Path;
 use crate::scanner::Scanner;
 use crate::utils::ResultToString;
@@ -10,19 +9,20 @@ mod scanner;
 mod utils;
 mod token;
 
-fn main() {
+fn main() -> Result<(), String> {
     let mut args = args();
     match args.len() {
         1 => {
-            run_repl();
+            return run_repl();
         }
         2 => {
-            run_file(&args.skip(1).next().unwrap()).unwrap();
+            return run_file(&args.skip(1).next().unwrap());
         }
         _ => {
             println!("Usage: {} [file.yp]", args.next().unwrap());
         }
     }
+    Ok(())
 }
 
 fn run_file(path: &str) -> Result<(), String> {
@@ -38,7 +38,8 @@ fn run_repl() -> Result<(), String> {
     let inp = std::io::stdin();
     loop {
         let mut source = String::new();
-        println!("> ");
+        print!("> ");
+        stdout().flush().str_res()?;
         inp.read_line(&mut source).str_res()?;
         match run(source) {
             Ok(_) => {}
@@ -48,6 +49,7 @@ fn run_repl() -> Result<(), String> {
 }
 
 fn run(source: String) -> Result<(), String> {
-    let scanner = Scanner::new(source);
-
+    let mut scanner = Scanner::new(&source);
+    println!("{:?}",scanner.scan_tokens()?);
+    Ok(())
 }
