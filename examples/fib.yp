@@ -4,4 +4,4 @@ lets Def-fn "Fib function (
     and else (number is + of Fib - 1 N and Fib - 2 N);
 );
 
-Now we can Print the Fib 10;
+now we can Print the Fib 10;
