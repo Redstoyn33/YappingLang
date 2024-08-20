@@ -1,4 +1,6 @@
-use crate::token::TokenData::{Decimal, Def, DefFn, Identifier, Integer, LeftParen, Local, RightParen, Semicolon};
+use crate::token::TokenData::{
+    Decimal, Def, DefFn, Identifier, Integer, LeftParen, Local, RightParen, Semicolon,
+};
 use crate::token::{Token, TokenData};
 use crate::utils::ResultToString;
 
@@ -41,7 +43,13 @@ impl Scanner {
             ')' => self.add_token(RightParen),
             ';' => self.add_token(Semicolon),
             '@' => self.add_token(Local),
-            '"' => self.string()?,
+            '"' => {
+                if self.peek() == '"' {
+                    self.string()?;
+                } else {
+                    self.short_string();
+                }
+            },
             '\n' => self.line += 1,
             _ => {
                 if c.is_whitespace() {
@@ -82,7 +90,10 @@ impl Scanner {
         })
     }
     fn string(&mut self) -> Result<(), String> {
-        while self.peek() != '"' && !self.is_at_end() {
+        // The start ".
+        self.advance();
+
+        while self.peek() != '"' && self.peek_next() != '"' && !self.is_at_end() {
             if self.peek() == '\n' {
                 self.line += 1;
             }
@@ -93,11 +104,12 @@ impl Scanner {
             return self.error("Unterminated string");
         }
 
-        // The closing ".
+        // The closing "".
+        self.advance();
         self.advance();
 
         self.add_token(TokenData::String(String::from_iter(
-            self.source[self.start + 1..self.current - 1].iter(),
+            self.source[self.start + 2..self.current - 2].iter(),
         )));
         Ok(())
     }
@@ -105,7 +117,7 @@ impl Scanner {
     fn error<T>(&self, err: &str) -> Result<T, String> {
         Err(format!("[line {}] Error: {}", self.line, err))
     }
-    fn hex_integer(&self) -> Result<(),String> {
+    fn hex_integer(&self) -> Result<(), String> {
         todo!()
     }
     fn number(&mut self) -> Result<(), String> {
@@ -120,14 +132,14 @@ impl Scanner {
                 self.advance();
             }
 
-            let dec: f64 = String::from_iter(
-                self.source[self.start..self.current].iter(),
-            ).parse().str_res()?;
+            let dec: f64 = String::from_iter(self.source[self.start..self.current].iter())
+                .parse()
+                .str_res()?;
             self.add_token(Decimal(dec));
         } else {
-            let int: i64 = String::from_iter(
-                self.source[self.start..self.current].iter(),
-            ).parse().str_res()?;
+            let int: i64 = String::from_iter(self.source[self.start..self.current].iter())
+                .parse()
+                .str_res()?;
             self.add_token(Integer(int));
         }
         Ok(())
@@ -143,9 +155,7 @@ impl Scanner {
         while !self.peek().is_whitespace() && !"();".contains(self.peek()) {
             self.advance();
         }
-        let str = String::from_iter(
-            self.source[self.start..self.current].iter(),
-        );
+        let str = String::from_iter(self.source[self.start..self.current].iter());
         if str == "Def-fn" {
             self.add_token(DefFn);
         } else if str == "Def" {
@@ -153,5 +163,14 @@ impl Scanner {
         } else {
             self.add_token(Identifier(str));
         }
+    }
+    fn short_string(&mut self) {
+        while !self.peek().is_whitespace() && !self.is_at_end() {
+            self.advance();
+        }
+
+        self.add_token(TokenData::String(String::from_iter(
+            self.source[self.start + 1..self.current].iter(),
+        )));
     }
 }
