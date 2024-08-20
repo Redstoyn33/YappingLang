@@ -1,14 +1,16 @@
-use std::env::args;
-use std::fs::File;
-use std::io::{Read, stdout, Write};
-use std::path::Path;
 use crate::scanner::Scanner;
 use crate::utils::ResultToString;
+use std::env::args;
+use std::fs::File;
+use std::io::{stdout, Read, Write};
+use std::path::Path;
+use crate::parser::{Parser, print_ast};
 
-mod scanner;
-mod utils;
-mod token;
+mod ast;
 mod parser;
+mod scanner;
+mod token;
+mod utils;
 
 fn main() -> Result<(), String> {
     let mut args = args();
@@ -34,7 +36,6 @@ fn run_file(path: &str) -> Result<(), String> {
     Ok(())
 }
 
-
 fn run_repl() -> Result<(), String> {
     let inp = std::io::stdin();
     loop {
@@ -44,13 +45,22 @@ fn run_repl() -> Result<(), String> {
         inp.read_line(&mut source).str_res()?;
         match run(source) {
             Ok(_) => {}
-            Err(err) => {println!("Error: {}", err)}
+            Err(err) => {
+                println!("Error: {}", err)
+            }
         }
     }
 }
 
 fn run(source: String) -> Result<(), String> {
     let mut scanner = Scanner::new(&source);
-    println!("{:?}",scanner.scan_tokens()?);
+    let tokens = scanner.scan_tokens()?;
+    println!("tokens:");
+    println!("{:?}", tokens);
+    let mut parser = Parser::new(tokens);
+    let ast = parser.build_tree()?;
+    println!("ast:");
+    println!("{:?}", ast);
+    print_ast(&ast,"test.puml")?;
     Ok(())
 }
