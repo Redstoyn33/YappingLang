@@ -8,6 +8,7 @@ use crate::utils::ResultToString;
 mod scanner;
 mod utils;
 mod token;
+mod parser;
 
 fn main() -> Result<(), String> {
     let mut args = args();
