@@ -1,5 +1,5 @@
 use crate::token::TokenData::{
-    Decimal, Def, DefFn, Identifier, Integer, LeftParen, Local, RightParen, Semicolon,
+    Decimal, Identifier, Integer, LeftParen, Local, RightParen, Semicolon,
 };
 use crate::token::{Token, TokenData};
 use crate::utils::ResultToString;
@@ -156,13 +156,7 @@ impl Scanner {
             self.advance();
         }
         let str = String::from_iter(self.source[self.start..self.current].iter());
-        if str == "Def-fn" {
-            self.add_token(DefFn);
-        } else if str == "Def" {
-            self.add_token(Def);
-        } else {
-            self.add_token(Identifier(str));
-        }
+        self.add_token(Identifier(str));
     }
     fn short_string(&mut self) {
         while !self.peek().is_whitespace() && !self.is_at_end() {

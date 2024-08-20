@@ -1,11 +1,10 @@
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub typ: TokenData,
     pub line: u64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TokenData {
     // Literals.
     Identifier(String),
@@ -18,8 +17,4 @@ pub enum TokenData {
     LeftParen,
     RightParen,
     Local,
-
-    // keywords
-    DefFn,
-    Def,
 }
