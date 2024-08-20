@@ -1,4 +1,4 @@
-use crate::token::TokenData::{Decimal, Def, DefFn, Identifier, Integer, LeftParen, RightParen, Semicolon};
+use crate::token::TokenData::{Decimal, Def, DefFn, Identifier, Integer, LeftParen, Local, RightParen, Semicolon};
 use crate::token::{Token, TokenData};
 use crate::utils::ResultToString;
 
@@ -40,6 +40,7 @@ impl Scanner {
             '(' => self.add_token(LeftParen),
             ')' => self.add_token(RightParen),
             ';' => self.add_token(Semicolon),
+            '@' => self.add_token(Local),
             '"' => self.string()?,
             '\n' => self.line += 1,
             _ => {

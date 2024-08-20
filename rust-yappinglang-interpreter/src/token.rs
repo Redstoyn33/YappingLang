@@ -17,6 +17,7 @@ pub enum TokenData {
     Semicolon,
     LeftParen,
     RightParen,
+    Local,
 
     // keywords
     DefFn,
