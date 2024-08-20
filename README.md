@@ -9,5 +9,6 @@ and make tree-walk interpreter
 - [ ] make first example work
   - [X] make scanner
   - [ ] make parser
-  - [ ] make runner 
+  - [ ] make runner
+    - [ ] make built-ins 
   - [ ] make optimizer 
