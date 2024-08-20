@@ -1,13 +1,13 @@
 @startebnf
 
-file = block;
+file = {exp | ";"};
 
 block = "(" , {exp | ";"} , ")";
 
-exp = def | local-def | block;
+exp = var | local-var | block;
 
-def = word;
-local-def = "@" , word;
+var = word;
+local-var = "@" , word;
 
 word = word-start , {?anychar?};
 
