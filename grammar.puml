@@ -1,0 +1,16 @@
+@startebnf
+
+file = block;
+
+block = "(" , {exp | ";"} , ")";
+
+exp = def | local-def | block;
+
+def = word;
+local-def = "@" , word;
+
+word = word-start , {?anychar?};
+
+word-start = ?uppercase-char? | ?non-alphabet-char?;
+
+@endebnf
