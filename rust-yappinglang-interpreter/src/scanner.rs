@@ -1,5 +1,5 @@
 use crate::token::TokenData::{
-    Decimal, Identifier, Integer, LeftParen, Local, RightParen, Semicolon,
+    Decimal, Identifier, Integer, LeftParen, Capture, RightParen, Semicolon,
 };
 use crate::token::{Token, TokenData};
 use crate::utils::ResultToString;
@@ -42,7 +42,7 @@ impl Scanner {
             '(' => self.add_token(LeftParen),
             ')' => self.add_token(RightParen),
             ';' => self.add_token(Semicolon),
-            '@' => self.add_token(Local),
+            '@' => self.add_token(Capture),
             '"' => {
                 if self.peek() == '"' {
                     self.string()?;
@@ -56,11 +56,7 @@ impl Scanner {
                     return Ok(());
                 }
                 if c.is_ascii_digit() {
-                    if c == '0' && self.peek() == 'x' {
-                        return self.hex_integer();
-                    } else {
-                        return self.number();
-                    }
+                    return self.number();
                 }
                 if c.is_uppercase() || !c.is_alphabetic() {
                     self.identifier();
