@@ -1,5 +1,5 @@
 use crate::token::TokenData::{
-    Decimal, Identifier, Integer, LeftParen, Capture, RightParen, Semicolon,
+    Capture, Decimal, Identifier, Integer, LeftParen, RightParen, Semicolon,
 };
 use crate::token::{Token, TokenData};
 use crate::utils::ResultToString;
@@ -49,7 +49,7 @@ impl Scanner {
                 } else {
                     self.short_string();
                 }
-            },
+            }
             '\n' => self.line += 1,
             _ => {
                 if c.is_whitespace() {
@@ -89,7 +89,7 @@ impl Scanner {
         // The start ".
         self.advance();
 
-        while self.peek() != '"' && self.peek_next() != '"' && !self.is_at_end() {
+        while !(self.peek() == '"' && self.peek_next() == '"') && !self.is_at_end() {
             if self.peek() == '\n' {
                 self.line += 1;
             }
