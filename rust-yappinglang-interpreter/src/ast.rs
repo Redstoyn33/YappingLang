@@ -5,7 +5,7 @@ pub struct Block {
 #[derive(Debug)]
 pub enum ExpData {
     Var(String),
-    LocalVar(String),
+    CapturedVar(String),
     Block(Block),
     Integer(i64),
     Decimal(f64),

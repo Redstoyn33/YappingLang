@@ -51,11 +51,11 @@ impl Parser {
                         return Ok(Block { exp });
                     }
                 }
-                TokenData::Local => match self.advance().typ.clone() {
+                TokenData::Capture => match self.advance().typ.clone() {
                     TokenData::Identifier(name) => {
-                        lines.last_mut().unwrap().push(ExpData::LocalVar(name));
+                        lines.last_mut().unwrap().push(ExpData::CapturedVar(name));
                     }
-                    _ => return self.error("expect identifier for local"),
+                    _ => return self.error("expect identifier for capture"),
                 },
             }
         }
@@ -130,7 +130,7 @@ fn print_ast_exp(exp: &Exp, file: &mut File) -> Result<usize, String> {
         ExpData::Var(var) => {
             file.write_all(var.as_ref()).str_res()?;
         }
-        ExpData::LocalVar(var) => {
+        ExpData::CapturedVar(var) => {
             file.write_all(format!("@{var}").as_ref()).str_res()?;
         }
         ExpData::Block(_) => {
