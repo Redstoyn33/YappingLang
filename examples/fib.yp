@@ -4,4 +4,17 @@ lets Def-fn "Fib function (
     and else (number is + of Fib - N 1 and Fib - N 2);
 );
 
-now we can Print the Fib 10;
+now we can Print the Fib 20;
+
+Def-fn "Fib-trec fibonacci with tail recursion (
+    Def-fn "Calc-fib (
+        Def "N as position;
+        Def "A as first num; and Def "B as second;
+        Do If (N; == 0) then return (A)
+        else (Calc-fib for - N on 1 position B as first num and second as + of A and B)
+    );
+    Def "N as position;
+    and start Calc-fib for N starting with 0 and 1;
+);
+
+Print Fib-trec for 33;
