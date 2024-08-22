@@ -1,7 +1,7 @@
 lets Def-fn "Fib function (
     Def "N as a position in fibonacci sequence;
-    then Do If (N; < 2) (then number is N)
-    and else (number is + of Fib - 1 N and Fib - 2 N);
+    then Do If (< N 2) (then number is N)
+    and else (number is + of Fib - N 1 and Fib - N 2);
 );
 
 now we can Print the Fib 10;
