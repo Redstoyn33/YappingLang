@@ -43,6 +43,8 @@ impl Scanner {
             ')' => self.add_token(RightParen),
             ';' => self.add_token(Semicolon),
             '@' => self.add_token(Capture),
+            '[' => {},
+            ']' => {},
             '"' => {
                 if self.peek() == '"' {
                     self.string()?;
