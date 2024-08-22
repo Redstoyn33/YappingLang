@@ -1,6 +1,6 @@
 lets Def-fn "Fib function (
     Def "N as a position in fibonacci sequence;
-    then Do If |N; < 2| (then number is N)
+    then Do If [N; < 2] (then number is N)
     and else (number is + of Fib - 1 N and Fib - 2 N);
 );
 
