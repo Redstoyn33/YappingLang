@@ -117,7 +117,8 @@ pub fn print_ast(tree: &Block, filepath: &str) -> Result<(), String> {
 
     if let Some(exp) = &tree.exp {
         let idx = print_ast_exp(exp, &mut file)?;
-        file.write_all(format!("0-d->{}\n",idx).as_ref()).str_res()?;
+        file.write_all(format!("0-d->{}\n", idx).as_ref())
+            .str_res()?;
     }
 
     file.write_all("@enduml\n".as_ref()).str_res()?;
@@ -147,16 +148,19 @@ fn print_ast_exp(exp: &Exp, file: &mut File) -> Result<usize, String> {
         }
     }
     let idx = exp as *const Exp as usize;
-    file.write_all(format!(")as {}\n", idx).as_ref()).str_res()?;
+    file.write_all(format!(")as {}\n", idx).as_ref())
+        .str_res()?;
     if let ExpData::Block(block) = &exp.data {
         if let Some(block_exp) = &block.exp {
             let block_idx = print_ast_exp(block_exp, file)?;
-            file.write_all(format!("{}-r->{}\n", idx, block_idx).as_ref()).str_res()?;
+            file.write_all(format!("{}-r->{}\n", idx, block_idx).as_ref())
+                .str_res()?;
         }
     }
     if let Some(next) = &exp.next_exp {
         let next_idx = print_ast_exp(next, file)?;
-        file.write_all(format!("{}-d->{}\n", idx, next_idx).as_ref()).str_res()?;
+        file.write_all(format!("{}-d->{}\n", idx, next_idx).as_ref())
+            .str_res()?;
     }
     Ok(idx)
 }

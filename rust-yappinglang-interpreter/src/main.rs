@@ -1,12 +1,16 @@
+use crate::interpreter::builtins::base;
+use crate::interpreter::Interpreter;
+use crate::parser::{print_ast, Parser};
 use crate::scanner::Scanner;
 use crate::utils::ResultToString;
+use std::collections::HashMap;
 use std::env::args;
 use std::fs::File;
 use std::io::{stdout, Read, Write};
 use std::path::Path;
-use crate::parser::{Parser, print_ast};
 
 mod ast;
+mod interpreter;
 mod parser;
 mod scanner;
 mod token;
@@ -55,12 +59,20 @@ fn run_repl() -> Result<(), String> {
 fn run(source: String) -> Result<(), String> {
     let mut scanner = Scanner::new(&source);
     let tokens = scanner.scan_tokens()?;
-    println!("tokens:");
-    println!("{:?}", tokens);
+    //println!("tokens:");
+    //println!("{:?}", tokens);
     let mut parser = Parser::new(tokens);
     let ast = parser.build_tree()?;
-    println!("ast:");
-    println!("{:?}", ast);
-    print_ast(&ast,"test.puml")?;
+    //println!("ast:");
+    //println!("{:?}", ast);
+    //print_ast(&ast,"test.puml")?;
+    let mut intr = Interpreter::new(base(HashMap::new()));
+    let id = intr.load(&ast);
+    intr.run(id).map_err(|e|println!("{e}"));
+    println!("stack after end:");
+    intr.stack.iter().rev().for_each(|d| println!("{}", d));
+    //println!("blocks:");
+    //println!("{:?}",intr.blocks);
+
     Ok(())
 }
