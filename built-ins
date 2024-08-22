@@ -1,0 +1,71 @@
+Types:
+
+integer - i
+bool == integer | decimal - ib
+decimal - d
+string - s
+list - l
+dictionary - dt
+box - b
+block - bl
+external - e
+
+any - a
+
+Fns:
+
+Def s bl
+Def-fn s a
+Print a
+Debug
+Panic! a
+
+Any! a
+True = ib
+False = ib
+To-integer ids = i
+Integer! a
+Integer? a = ib
+To-decimal ids = d
+Decimal! a
+Decimal? a = ib
++ id id = id
+- id id = id
+/ id id = id
+* id id = id
+To-string a = s
+String! a
+String? a = ib
+String-join a a = s
+To-list a = l
+List! a
+List? a = ib
+List bl = l
+List-stack = l
+List-from i = l
+List-len l = i
+Do-on-list l bl = l
+Dict! a
+Dict? a = ib
+Dict bl = dt
+Dict-get a = a
+Dict-set a a
+Dict-has a = i
+Dict-keys = l
+Dict-vals = l
+Box a = b
+Box-get b = a
+Box-set b a
+
+Block! a
+Block? a = ib
+Block-id bl = i
+Block-in-id = i
+Block-from-id i = bl
+Get-def s = a
+Has-def s = ib
+Create-External s = e
+
+Do bl
+When bl bl
+If ib a a
