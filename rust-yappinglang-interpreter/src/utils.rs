@@ -1,5 +1,5 @@
-use std::error::Error;
 use crate::interpreter::data::Data;
+use std::error::Error;
 
 pub trait ResultToString<T, E: ToString> {
     fn str_res(self) -> Result<T, String>;
@@ -27,5 +27,5 @@ impl<T> OptionToString<T> for Option<T> {
 }
 
 pub fn print_stack(stack: &Vec<Data>) {
-    stack.iter().rev().for_each(|d|println!("{d}"));
+    stack.iter().rev().for_each(|d| println!("{d}"));
 }
