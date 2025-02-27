@@ -18,9 +18,9 @@ Def s bl
 Def-fn s a
 Print a
 Debug
-Panic! a
 
 Any! a
+Any? a = ib
 True = ib
 False = ib
 To-integer ids = i
@@ -37,13 +37,20 @@ To-string a = s
 String! a
 String? a = ib
 String-join a a = s
+String-chars s = l
 To-list a = l
 List! a
 List? a = ib
 List bl = l
-List-stack = l
-List-from i = l
+List-reverse l = l
+List-stack a... = l
+List-swap-stack l a... = l a...
+List-from i a... = l
 List-len l = i
+List-pop l = a l
+List-push a l = l
+Range i i = l
+For l d = l
 Do-on-list l bl = l
 Dict! a
 Dict? a = ib
@@ -59,12 +66,14 @@ Box-set b a
 
 Block! a
 Block? a = ib
-Block-id bl = i
-Block-in-id = i
-Block-from-id i = bl
 Get-def s = a
 Has-def s = ib
-Create-External s = e
+New-external s = e
+Use-external s e = a...
+Timer
+Assert ib
+Use-file s = a...w
+Try-use-file s = ib a...
 
 Do bl
 When bl bl

@@ -1,88 +1,77 @@
 pub mod builtins;
 pub mod data;
 pub mod run_tree;
+mod external;
 
+use std::cell::RefCell;
 use crate::interpreter::data::Data;
 use crate::interpreter::run_tree::{Block, Exp, ExpData};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
+use crate::interpreter::external::External;
 
-type StackFn = fn(
-    &mut Vec<Data>,
-    &mut Vec<Rc<Block>>,
-    &HashMap<String, Data>,
-    &mut BlockExec,
-) -> Result<(), String>;
+type StackFn = fn(&mut Vec<Data>, &HashMap<String, Data>, &mut BlockExec) -> Result<(), String>;
 
 pub struct Interpreter {
-    root: BlockExec,
-    pub blocks: Vec<Rc<Block>>,
+    pub root: BlockExec,
     pub stack: Vec<Data>,
 }
 
 impl Interpreter {
     pub fn new(builtins: HashMap<String, Data>) -> Self {
         Self {
-            root: BlockExec::new(usize::MAX, builtins),
-            blocks: vec![],
+            root: BlockExec::new(builtins),
             stack: vec![],
         }
     }
-    pub fn load(&mut self, block: &crate::ast::Block) -> usize {
-        run_tree::load(&mut self.blocks, block)
+    pub fn load(&mut self, block: &crate::ast::Block) -> Rc<Block> {
+        run_tree::load(block)
     }
 
-    pub fn run(&mut self, block_id: usize) -> Result<(), String> {
-        self.root
-            .run_root(&mut self.stack, &mut self.blocks, block_id)
+    pub fn run(&mut self, block: Rc<Block>) -> Result<(), String> {
+        self.root.run_root(&mut self.stack, block)
+    }
+
+    pub fn load_and_run(&mut self, block: &crate::ast::Block) -> Result<(), String> {
+        let block = self.load(block);
+        self.run(block)
     }
 }
 
 struct BlockExec {
     defs: HashMap<String, Data>,
-    id: usize,
 }
 
 impl BlockExec {
-    pub fn new(id: usize, defs: HashMap<String, Data>) -> Self {
-        Self { defs, id }
+    pub fn new(defs: HashMap<String, Data>) -> Self {
+        Self { defs }
     }
 
     pub fn new_and_run(
         &mut self,
         stack: &mut Vec<Data>,
-        blocks: &mut Vec<Rc<Block>>,
         prev_defs: &HashMap<String, Data>,
         block: &data::Block,
     ) -> Result<(), String> {
-        let mut call = BlockExec::new(block.block_id, block.captured_vars.clone());
+        let mut call = BlockExec::new(block.captured_vars.clone());
         let mut defs = prev_defs.clone();
         for (k, v) in &self.defs {
             defs.insert(k.clone(), v.clone());
         }
-        call.run_block(stack, blocks, &defs, block.block_id)
+        call.run_block(stack, &defs, block.block.clone())
     }
 
-    pub fn run_root(
-        &mut self,
-        stack: &mut Vec<Data>,
-        blocks: &mut Vec<Rc<Block>>,
-        block_id: usize,
-    ) -> Result<(), String> {
-        self.run_block(stack, blocks, &HashMap::new(), block_id)
+    pub fn run_root(&mut self, stack: &mut Vec<Data>, block: Rc<Block>) -> Result<(), String> {
+        self.run_block(stack, &HashMap::new(), block)
     }
     pub fn run_block(
         &mut self,
         stack: &mut Vec<Data>,
-        blocks: &mut Vec<Rc<Block>>,
         prev_defs: &HashMap<String, Data>,
-        block_id: usize,
+        block: Rc<Block>,
     ) -> Result<(), String> {
-        let Some(block) = blocks.get(block_id) else {
-            return self.error(format!("no block with id {}", block_id));
-        };
-        if let Some(exp) = &block.clone().exp {
-            self.run_exp(stack, blocks, prev_defs, exp)?;
+        if let Some(exp) = &block.exp {
+            self.run_exp(stack, prev_defs, exp)?;
         }
         Ok(())
     }
@@ -90,22 +79,21 @@ impl BlockExec {
     fn run_exp(
         &mut self,
         stack: &mut Vec<Data>,
-        blocks: &mut Vec<Rc<Block>>,
         prev_defs: &HashMap<String, Data>,
         exp: &Exp,
     ) -> Result<(), String> {
         if let Some(next_exp) = &exp.next_exp {
-            self.run_exp(stack, blocks, prev_defs, next_exp)?;
+            self.run_exp(stack, prev_defs, next_exp)?;
         }
         match &exp.data {
             ExpData::Var(var) => {
                 if let Some(data) = self.get_data(var, prev_defs) {
                     match data {
                         Data::Fn(block) => {
-                            self.new_and_run(stack,blocks,prev_defs, &block)?;
+                            self.new_and_run(stack, prev_defs, &block)?;
                         }
                         Data::BuiltinFunc(func) => {
-                            func(stack, blocks, prev_defs, self)?;
+                            func(stack, prev_defs, self)?;
                         }
                         _ => stack.push(data),
                     }
@@ -113,20 +101,10 @@ impl BlockExec {
                     return self.error(format!("variable '{}' not found", var));
                 }
             }
-            ExpData::Block(id) => {
-                let Some(block) = blocks.get(*id) else {
-                    return self.error(format!("no block with id {}", id));
-                };
-                let mut captured_vars = HashMap::new();
-                for var in &block.capture_vars {
-                    if let Some(data) = self.get_data(var, prev_defs) {
-                        captured_vars.insert(var.clone(), data);
-                    } else {
-                        return self.error(format!("variable '{}' not found for capture", var));
-                    }
-                }
+            ExpData::Block(block) => {
+                let captured_vars = self.capture(&block.capture_vars, prev_defs)?;
                 stack.push(Data::Block(data::Block {
-                    block_id: *id,
+                    block: block.clone(),
                     captured_vars,
                 }));
             }
@@ -149,9 +127,23 @@ impl BlockExec {
         }
     }
 
-    fn error(&self, message: String) -> Result<(), String> {
-        Err(format!("error in block {}: {}", self.id, message))
+    fn capture(
+        &mut self,
+        vars: &HashSet<String>,
+        prev_defs: &HashMap<String, Data>,
+    ) -> Result<HashMap<String, Data>, String> {
+        let mut captured_vars = HashMap::new();
+        for var in vars {
+            if let Some(data) = self.get_data(var, prev_defs) {
+                captured_vars.insert(var.clone(), data);
+            } else {
+                return self.error(format!("variable '{}' not found for capture", var));
+            }
+        }
+        Ok(captured_vars)
     }
 
-
+    fn error<T>(&self, message: String) -> Result<T, String> {
+        Err(format!("error: {}", message))
+    }
 }
